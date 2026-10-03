@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAS Calculator</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#14263e;--muted:#687582;--accent:#062653;--line:#dce2e8;--soft:#f2f5f8}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:960px;margin:0 auto;padding:32px 20px 40px}.head{display:flex;align-items:center;gap:24px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.logo{width:120px;height:auto;flex-shrink:0}.head h1{margin:0 0 4px;font-size:26px;font-weight:700;letter-spacing:-.5px}.head p{margin:0;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px}
+h2{font-size:17px;margin:0 0 20px;letter-spacing:-.2px}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{margin-bottom:18px}.field label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
+input,select{width:100%;min-width:0;min-height:48px;padding:11px 12px;border:1px solid #c8d1dc;border-radius:7px;background:#fff;color:var(--ink);font:inherit;font-size:16px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #b7cde8;outline-offset:2px;border-color:var(--accent)}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.metric{background:var(--soft);border-radius:8px;padding:16px;min-width:0}.metric small{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;font-size:19px;margin-top:5px;font-weight:600;overflow-wrap:anywhere}
+.summary .results{grid-template-columns:repeat(3,minmax(0,1fr))}.summary .metric:last-child{background:var(--accent);color:#fff}.summary .metric:last-child small{color:#d0dae8}.summary .metric:last-child strong{font-size:26px}
+button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;background:var(--accent);color:#fff;font:inherit;font-weight:600;cursor:pointer}button:hover{background:#123d70}
+.note{font-size:12px;color:var(--muted);line-height:1.6;margin:14px 0 0}.wide{grid-column:1/-1}.panel-card .field{margin-bottom:0}.footer{text-align:center;font-size:12px;color:var(--muted);margin:22px 0 0}
+@media(max-width:640px){.wrap{padding:22px 16px 28px}.head{gap:16px;margin-bottom:20px;padding-bottom:20px}.logo{width:86px}.head h1{font-size:22px}.head p{font-size:13px}.grid{grid-template-columns:1fr;gap:16px}.card{padding:20px}.wide{grid-column:auto}.summary .results{grid-template-columns:repeat(2,minmax(0,1fr))}.row{gap:12px}.metric{padding:13px}.metric strong{font-size:17px}}
+@media(max-width:360px){.row{grid-template-columns:1fr}.head{gap:12px}.logo{width:72px}.head h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head"><svg class="logo" viewBox="0 0 2048 1057" role="img" aria-label="RAS logo" xmlns="http://www.w3.org/2000/svg">
+<title>RAS</title>
+<path fill="#062653" d="M0 0H550C650 0 727 71 727 174V214C727 314 665 370 571 390L597 418H922L1035 240L1126 372L1001 567H494L339 390H174V567H0V248H516C537 248 552 233 552 212V179C552 158 537 142 516 142H0Z"/>
+<path fill="#737d89" d="M950 0H1125L1417 425H1847C1883 425 1883 354 1847 354H1490C1388 354 1316 281 1316 168H1491C1495 197 1505 212 1518 212H1882C1972 212 2048 272 2048 370V414C2048 496 1982 567 1895 567H1300L1037 183L889 399H677Z"/>
+<path fill="#062653" d="M1286 0H2042L1977 146H1347C1321 146 1305 158 1288 178L1199 47C1224 20 1254 0 1286 0Z"/>
+<path fill="#062653" d="M0 727H2042V1057H0Z"/>
+</svg><div><h1>Solar Calculator</h1><p>A simple estimate for your solar system.</p></div></header>
+
+  <div class="grid">
+    <section class="card">
+      <h2>1. Electricity requirement</h2>
+      <div class="row">
+        <div class="field">
+          <label for="load">Enter Requirement</label>
+          <input id="load" type="number" value="50" min="0.1" step="0.1">
+        </div>
+        <div class="field">
+          <label for="unit">Unit</label>
+          <select id="unit">
+            <option value="amps">Amps (A)</option>
+            <option value="kw">kW</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="phase">Supply</label>
+          <select id="phase">
+            <option value="3">Three Phase</option>
+            <option value="1">Single Phase</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="volt">Voltage</label>
+          <select id="volt">
+            <option value="400">400 V</option>
+            <option value="230">230 V</option>
+          </select>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="card">
+      <h2>2. Grid &amp; battery</h2>
+      <div class="row">
+        <div class="field">
+          <label for="systemtype">System Type</label>
+          <select id="systemtype">
+            <option value="ongrid">On-Grid — No Battery</option>
+            <option value="hybrid">Hybrid — Battery Backup</option>
+            <option value="offgrid">Off-Grid — Battery Required</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="backload">Backup Load (kW)</label>
+          <input id="backload" type="number" value="5" min="0" step="0.1">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="backhours">Backup Time (Hours)</label>
+          <input id="backhours" type="number" value="4" min="0" step="0.5">
+        </div>
+        <div class="field">
+          <label for="batterycap">Battery Usable Capacity</label>
+          <select id="batterycap">
+            <option value="5">5 kWh</option>
+            <option value="10" selected>10 kWh</option>
+            <option value="15">15 kWh</option>
+          </select>
+        </div>
+      </div>
+      <div class="results">
+        <div class="metric"><small>Battery Needed</small><strong id="batteryneeded">—</strong></div>
+        <div class="metric"><small>Battery Units</small><strong id="batteryunits">—</strong></div>
+      </div>
+      <p class="note">On-grid systems normally do not require batteries. Select Hybrid or Off-Grid if backup power is required.</p>
+    </section>
+
+    <section class="card wide panel-card">
+      <h2>3. Panels &amp; installation</h2>
+      <div class="row">
+        <div class="field">
+          <label for="panel">Solar Panel</label>
+          <select id="panel">
+            <option value="580" data-price="85">580 W — $85</option>
+            <option value="630" data-price="102" selected>630 W — $102</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="other">Installation / Other Cost ($)</label>
+          <input id="other" type="number" value="0" min="0">
+        </div>
+      </div>
+      <button onclick="calculate()" style="margin-top:18px">Calculate estimate</button>
+      <p class="note">This is an initial estimate. Final system, cable, breaker and protection sizing should be confirmed by a qualified engineer.</p>
+    </section>
+    <section class="card wide summary">
+      <h2>Your estimate</h2>
+      <div class="results" aria-live="polite">
+        <div class="metric"><small>Your Load</small><strong id="loadresult">—</strong></div>
+        <div class="metric"><small>Solar System</small><strong id="system">—</strong></div>
+        <div class="metric"><small>Panels Needed</small><strong id="panels">—</strong></div>
+        <div class="metric"><small>Panel Cost</small><strong id="panelcost">—</strong></div>
+        <div class="metric"><small>Inverter</small><strong id="inverter">—</strong></div>
+        <div class="metric"><small>Estimated Total</small><strong id="total">—</strong></div>
+      </div>
+    </section>
+
+
+  </div>
+  <p class="footer">RAS · Solar system planning</p>
+</div>
+
+<script>
+const inv1=[{kw:6,p:330,n:"6 kW"},{kw:10,p:485,n:"10 kW"}];
+const inv3=[{kw:10,p:510,n:"10 kW"},{kw:20,p:625,n:"20 kW"},{kw:30,p:835,n:"30 kW"},{kw:60,p:1370,n:"60 kW"},{kw:80,p:2300,n:"80 kW"}];
+
+function money(x){return "$"+Math.round(x).toLocaleString()}
+
+function calculate(){
+  const load=+document.getElementById('load').value||0;
+  const unit=document.getElementById('unit').value;
+  const phase=+document.getElementById('phase').value;
+  const volt=+document.getElementById('volt').value;
+  const panelW=+document.getElementById('panel').value;
+  const panelPrice=+document.querySelector('#panel option:checked').dataset.price;
+  const other=+document.getElementById('other').value||0;
+
+  let kw;
+  if(unit==="amps"){
+    kw=phase===3 ? load*Math.sqrt(3)*volt*0.9/1000 : load*volt*0.9/1000;
+  }else{
+    kw=load;
+  }
+
+  const amps=phase===3 ? kw*1000/(Math.sqrt(3)*volt*0.9) : kw*1000/(volt*0.9);
+  const solarKW=kw*1.2;
+  const panels=Math.ceil(solarKW*1000/panelW);
+  const actualKW=panels*panelW/1000;
+
+  const list=phase===3?inv3:inv1;
+  const inverter=list.find(x=>x.kw>=kw)||list[list.length-1];
+
+  const systemtype=document.getElementById('systemtype').value;
+  const backload=+document.getElementById('backload').value||0;
+  const backhours=+document.getElementById('backhours').value||0;
+  const batterycap=+document.getElementById('batterycap').value||10;
+
+  let batteryKwh=0, batteryUnits=0, batteryCost=0;
+  if(systemtype!=="ongrid"){
+    batteryKwh=(backload*backhours)/0.8;
+    batteryUnits=Math.ceil(batteryKwh/batterycap);
+    batteryCost=batteryUnits*batterycap*125;
+  }
+
+  const total=panels*panelPrice+inverter.p+other+batteryCost;
+
+  document.getElementById('batteryneeded').textContent=
+    systemtype==="ongrid" ? "Not required" : batteryKwh.toFixed(1)+" kWh";
+  document.getElementById('batteryunits').textContent=
+    systemtype==="ongrid" ? "—" : batteryUnits+" × "+batterycap+" kWh";
+
+  document.getElementById('loadresult').textContent=kw.toFixed(1)+" kW / "+amps.toFixed(1)+" A";
+  document.getElementById('system').textContent=actualKW.toFixed(1)+" kW";
+  document.getElementById('panels').textContent=panels+" × "+panelW+" W";
+  document.getElementById('panelcost').textContent=money(panels*panelPrice);
+  document.getElementById('inverter').textContent=inverter.n+" — "+money(inverter.p);
+  document.getElementById('total').textContent=money(total);
+}
+
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',calculate));
+calculate();
+</script>
+</body>
+</html>
