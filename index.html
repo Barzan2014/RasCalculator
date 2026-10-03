@@ -109,12 +109,12 @@ button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;backgr
         <div class="field">
           <label for="panel">Solar Panel</label>
           <select id="panel">
-            <option value="580" data-price="85">580 W — $85</option>
-            <option value="630" data-price="102" selected>630 W — $102</option>
+            <option value="580" data-price="85">580 W — 136,000 IQD</option>
+            <option value="630" data-price="102" selected>630 W — 163,200 IQD</option>
           </select>
         </div>
         <div class="field">
-          <label for="other">Installation / Other Cost ($)</label>
+          <label for="other">Installation / Other Cost (IQD)</label>
           <input id="other" type="number" value="0" min="0">
         </div>
       </div>
@@ -135,14 +135,15 @@ button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;backgr
 
 
   </div>
-  <p class="footer">RAS · Solar system planning</p>
+  <p class="footer">RAS · All prices in IQD · 1 USD = 1,600 IQD</p>
 </div>
 
 <script>
 const inv1=[{kw:6,p:330,n:"6 kW"},{kw:10,p:485,n:"10 kW"}];
 const inv3=[{kw:10,p:510,n:"10 kW"},{kw:20,p:625,n:"20 kW"},{kw:30,p:835,n:"30 kW"},{kw:60,p:1370,n:"60 kW"},{kw:80,p:2300,n:"80 kW"}];
 
-function money(x){return "$"+Math.round(x).toLocaleString()}
+const IQD_PER_USD=1600;
+function money(usd){return Math.round(usd*IQD_PER_USD).toLocaleString("en-US")+" IQD"}
 
 function calculate(){
   const load=+document.getElementById('load').value||0;
@@ -151,7 +152,7 @@ function calculate(){
   const volt=+document.getElementById('volt').value;
   const panelW=+document.getElementById('panel').value;
   const panelPrice=+document.querySelector('#panel option:checked').dataset.price;
-  const other=+document.getElementById('other').value||0;
+  const other=(+document.getElementById('other').value||0)/IQD_PER_USD;
 
   let kw;
   if(unit==="amps"){
