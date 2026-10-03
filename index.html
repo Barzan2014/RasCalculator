@@ -12,6 +12,7 @@
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px}
 h2{font-size:17px;margin:0 0 20px;letter-spacing:-.2px}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{margin-bottom:18px}.field label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
 input,select{width:100%;min-width:0;min-height:48px;padding:11px 12px;border:1px solid #c8d1dc;border-radius:7px;background:#fff;color:var(--ink);font:inherit;font-size:16px}
+input:disabled,select:disabled{background:#eef1f4;color:#86919e;border-color:var(--line);cursor:not-allowed}
 input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #b7cde8;outline-offset:2px;border-color:var(--accent)}
 .results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.metric{background:var(--soft);border-radius:8px;padding:16px;min-width:0}.metric small{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;font-size:19px;margin-top:5px;font-weight:600;overflow-wrap:anywhere}
 .summary .results{grid-template-columns:repeat(3,minmax(0,1fr))}.summary .metric:last-child{background:var(--accent);color:#fff}.summary .metric:last-child small{color:#d0dae8}.summary .metric:last-child strong{font-size:26px}
@@ -57,10 +58,7 @@ button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;backgr
         </div>
         <div class="field">
           <label for="volt">Voltage</label>
-          <select id="volt">
-            <option value="400">400 V</option>
-            <option value="230">230 V</option>
-          </select>
+          <input id="volt" type="text" value="400 V" readonly>
         </div>
       </div>
 
@@ -78,7 +76,7 @@ button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;backgr
           </select>
         </div>
         <div class="field">
-          <label for="backload">Backup Load (kW)</label>
+          <label for="backload" id="backloadlabel">Backup Load (Amps)</label>
           <input id="backload" type="number" value="5" min="0" step="0.1">
         </div>
       </div>
@@ -104,18 +102,11 @@ button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;backgr
     </section>
 
     <section class="card wide panel-card">
-      <h2>3. Panels &amp; installation</h2>
+      <h2>3. Solar panels</h2>
       <div class="row">
         <div class="field">
           <label for="panel">Solar Panel</label>
-          <select id="panel">
-            <option value="580" data-price="85">580 W — 136,000 IQD</option>
-            <option value="630" data-price="102" selected>630 W — 163,200 IQD</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="other">Installation / Other Cost (IQD)</label>
-          <input id="other" type="number" value="0" min="0">
+          <input id="panel" type="text" value="645 W" readonly>
         </div>
       </div>
       <button onclick="calculate()" style="margin-top:18px">Calculate estimate</button>
@@ -135,7 +126,7 @@ button{width:100%;min-height:48px;padding:12px;border:0;border-radius:7px;backgr
 
 
   </div>
-  <p class="footer">RAS · All prices in IQD · 1 USD = 1,600 IQD</p>
+  <p class="footer">RAS</p>
 </div>
 
 <script>
@@ -149,10 +140,11 @@ function calculate(){
   const load=+document.getElementById('load').value||0;
   const unit=document.getElementById('unit').value;
   const phase=+document.getElementById('phase').value;
-  const volt=+document.getElementById('volt').value;
-  const panelW=+document.getElementById('panel').value;
-  const panelPrice=+document.querySelector('#panel option:checked').dataset.price;
-  const other=(+document.getElementById('other').value||0)/IQD_PER_USD;
+  const volt=phase===3?400:230;
+  document.getElementById('volt').value=volt+' V';
+  document.getElementById('backloadlabel').textContent=unit==='amps'?'Backup Load (Amps)':'Backup Load (kW)';
+  const panelW=645;
+  const panelPrice=250000/IQD_PER_USD;
 
   let kw;
   if(unit==="amps"){
@@ -170,7 +162,13 @@ function calculate(){
   const inverter=list.find(x=>x.kw>=kw)||list[list.length-1];
 
   const systemtype=document.getElementById('systemtype').value;
-  const backload=+document.getElementById('backload').value||0;
+  ['backload','backhours','batterycap'].forEach(id=>{
+    document.getElementById(id).disabled=systemtype==='ongrid';
+  });
+  const backupInput=+document.getElementById('backload').value||0;
+  const backload=unit==='amps'
+    ? backupInput*(phase===3?Math.sqrt(3):1)*volt*0.9/1000
+    : backupInput;
   const backhours=+document.getElementById('backhours').value||0;
   const batterycap=+document.getElementById('batterycap').value||10;
 
@@ -181,7 +179,7 @@ function calculate(){
     batteryCost=batteryUnits*batterycap*125;
   }
 
-  const total=panels*panelPrice+inverter.p+other+batteryCost;
+  const total=panels*panelPrice+inverter.p+batteryCost;
 
   document.getElementById('batteryneeded').textContent=
     systemtype==="ongrid" ? "Not required" : batteryKwh.toFixed(1)+" kWh";
